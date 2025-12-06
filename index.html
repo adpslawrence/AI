@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學思AI | 新世代課後教育機構</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb', // 科技藍
+                        secondary: '#0f172a', // 深邃黑
+                        accent: '#10b981', // 成長綠
+                        warm: '#f59e0b', // 溫暖橘 (代表老師溫度)
+                        surface: '#f8fafc',
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-warm {
+            background: linear-gradient(135deg, #2563eb 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* 表格響應式處理 */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Modal 動畫 */
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        /* 手指滑動提示動畫 */
+        @keyframes swipe-hint {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+        }
+        .animate-swipe {
+            display: inline-block;
+            animation: swipe-hint 1.5s infinite ease-in-out;
+        }
+        /* 課表專用樣式 */
+        .schedule-table th, .schedule-table td {
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #e2e8f0;
+        }
+        .schedule-table th {
+            background-color: #f8fafc;
+            color: #ef4444; 
+            font-weight: bold;
+            padding: 12px;
+            white-space: nowrap;
+        }
+        .schedule-table td {
+            padding: 8px;
+            color: #1e293b;
+            font-weight: 700;
+            min-width: 100px;
+        }
+        .time-col {
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        /* Tab 按鈕樣式 */
+        .tab-btn {
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            border-bottom-color: #f59e0b;
+            color: #f59e0b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-700 antialiased bg-white">
+
+    <!-- 導航欄 -->
+    <nav class="fixed w-full z-50 glass-nav shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary to-warm rounded-lg flex items-center justify-center text-white">
+                        <i class="fa-solid fa-brain text-xl"></i>
+                    </div>
+                    <span class="font-bold text-2xl text-slate-800 tracking-tight">學思AI</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#philosophy" class="text-slate-600 hover:text-primary font-medium transition">核心理念</a>
+                    <a href="#service-model" class="text-slate-600 hover:text-primary font-medium transition">服務價值</a>
+                    <a href="#core-structure" class="text-slate-600 hover:text-primary font-medium transition">經營架構</a>
+                    <a href="#comparison" class="text-slate-600 hover:text-primary font-medium transition">技術優勢</a>
+                </div>
+                <a href="#contact" class="hidden md:block px-6 py-2.5 bg-primary text-white rounded-full hover:bg-blue-700 transition font-medium shadow-lg shadow-blue-500/30">
+                    預約諮詢
+                </a>
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-slate-600" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 absolute w-full shadow-lg">
+            <div class="px-4 py-4 space-y-3">
+                <a href="#philosophy" class="block px-3 py-2 text-slate-600 font-medium">核心理念</a>
+                <a href="#service-model" class="block px-3 py-2 text-slate-600 font-medium">服務價值</a>
+                <a href="#core-structure" class="block px-3 py-2 text-slate-600 font-medium">經營架構</a>
+                <a href="#comparison" class="block px-3 py-2 text-slate-600 font-medium">技術優勢</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-surface">
+        <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-50 to-transparent opacity-60"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="text-center max-w-4xl mx-auto">
+                <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-primary font-semibold text-sm mb-6">
+                    <span class="w-2 h-2 bg-primary rounded-full mr-2"></span>
+                    新世代課後教育機構
+                </div>
+                <h1 class="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
+                    AI 精準領航<br>
+                    <span class="gradient-warm">老師溫度陪伴</span>
+                </h1>
+                <p class="text-xl text-slate-600 mb-10 leading-relaxed font-medium">
+                    成就孩子的高效自學力與未來領導力。<br>
+                    <span class="text-base font-normal text-slate-500 mt-2 block">結合科技數據與人文關懷，打造真正「精準突破」的學習體驗。</span>
+                </p>
+                <div class="flex justify-center gap-4">
+                    <a href="#core-structure" class="px-8 py-4 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-blue-500/30">
+                        探索經營架構
+                    </a>
+                    <a href="#service-model" class="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-lg font-semibold hover:bg-slate-50 transition">
+                        價值比較
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心理念 -->
+    <section id="philosophy" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">三大核心理念</h2>
+                <p class="text-lg text-slate-500">我們如何重新定義學習</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 理念 1 -->
+                <div class="p-8 rounded-2xl bg-slate-50 border-t-4 border-primary shadow-sm hover:shadow-lg transition">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-primary text-2xl mb-6 mx-auto">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 text-center mb-4">高效自學</h3>
+                    <p class="text-slate-600 text-center leading-relaxed">
+                        透過 AI 數據分析，讓學習從「苦讀」轉為「精準突破」，培養孩子在最短時間內掌握重點的高效自學力。
+                    </p>
+                </div>
+                <!-- 理念 2 -->
+                <div class="p-8 rounded-2xl bg-slate-50 border-t-4 border-warm shadow-sm hover:shadow-lg transition">
+                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-warm text-2xl mb-6 mx-auto">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 text-center mb-4">教師升級</h3>
+                    <p class="text-slate-600 text-center leading-relaxed">
+                        教師從「作業批改者」升級為「學習規劃師」，釋放人力用於情感支持、品格教育與創意培養。
+                    </p>
+                </div>
+                <!-- 理念 3 -->
+                <div class="p-8 rounded-2xl bg-slate-50 border-t-4 border-accent shadow-sm hover:shadow-lg transition">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-accent text-2xl mb-6 mx-auto">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 text-center mb-4">透明成果</h3>
+                    <p class="text-slate-600 text-center leading-relaxed">
+                        建立透明的學習生態系統，讓家長隨時掌握孩子最精準的學習進度、弱點與成長軌跡。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 服務模式價值比較 -->
+    <section id="service-model" class="py-20 bg-slate-900 text-white relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20">
+            <div class="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-primary blur-3xl"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-warm blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="mb-16 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">服務模式價值比較</h2>
+                <div class="w-24 h-1 bg-warm mx-auto rounded-full mb-6"></div>
+                <p class="text-slate-300">為什麼選擇學思AI？</p>
+            </div>
+
+            <!-- 手機版滑動提示 -->
+            <div class="md:hidden text-center text-slate-400 text-sm mb-4 animate-pulse">
+                <span class="inline-block bg-slate-800/50 px-3 py-1 rounded-full border border-slate-700">
+                    <i class="fa-solid fa-hand-pointer mr-2 text-warm animate-swipe"></i> 👉 如果使用手機向右滑看全表
+                </span>
+            </div>
+
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <div class="table-container">
+                    <table class="w-full min-w-[800px] text-left">
+                        <thead>
+                            <tr class="bg-slate-700/50 text-slate-300">
+                                <th class="p-6 font-medium">比較維度</th>
+                                <th class="p-6 font-medium">傳統安親班</th>
+                                <th class="p-6 font-medium">傳統家教</th>
+                                <th class="p-6 bg-primary/20 text-white font-bold text-lg border-b-2 border-primary">學思AI (本機構)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700">
+                            <tr class="hover:bg-slate-700/30 transition">
+                                <td class="p-6 font-bold text-slate-200">教學效率</td>
+                                <td class="p-6 text-slate-400">低 (單純寫作業)</td>
+                                <td class="p-6 text-slate-400">中 (依賴人工)</td>
+                                <td class="p-6 bg-primary/10 text-white font-semibold">
+                                    <i class="fa-solid fa-check text-accent mr-2"></i>
+                                    AI精準診斷<br>
+                                    <span class="text-sm font-normal text-slate-300">立即找出盲點，精準突破</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition">
+                                <td class="p-6 font-bold text-slate-200">成本 / 價格</td>
+                                <td class="p-6 text-slate-400">較低</td>
+                                <td class="p-6 text-slate-400">極昂貴</td>
+                                <td class="p-6 bg-primary/10 text-white font-semibold">
+                                    <i class="fa-solid fa-check text-accent mr-2"></i>
+                                    高 C/P 值<br>
+                                    <span class="text-sm font-normal text-slate-300">機構費用，家教級體驗</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition">
+                                <td class="p-6 font-bold text-slate-200">教師價值</td>
+                                <td class="p-6 text-slate-400">批改作業、輔導</td>
+                                <td class="p-6 text-slate-400">知識傳授</td>
+                                <td class="p-6 bg-primary/10 text-white font-semibold">
+                                    <i class="fa-solid fa-check text-accent mr-2"></i>
+                                    溫度放大<br>
+                                    <span class="text-sm font-normal text-slate-300">聚焦情感、品格與創意</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition">
+                                <td class="p-6 font-bold text-slate-200">教學內容</td>
+                                <td class="p-6 text-slate-400">統一進度</td>
+                                <td class="p-6 text-slate-400">依老師經驗</td>
+                                <td class="p-6 bg-primary/10 text-white font-semibold">
+                                    <i class="fa-solid fa-check text-accent mr-2"></i>
+                                    適性化個人家教<br>
+                                    <span class="text-sm font-normal text-slate-300">AI賦能的量身訂做</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 經營組織與功能區塊 -->
+    <section id="core-structure" class="py-24 bg-surface relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">經營組織與核心功能</h2>
+                <p class="text-slate-600">打造 AI 與 Human 協作的完美閉環</p>
+                <div class="w-20 h-1 bg-primary mx-auto rounded-full mt-6"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- AI Core -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-blue-500 hover:-translate-y-2 transition duration-300">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-2xl mr-4">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">學習數據中台 <br><span class="text-sm font-normal text-slate-500">AI Core</span></h3>
+                    </div>
+                    <ul class="space-y-4 text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-crosshairs text-blue-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-slate-800">精準分析引擎</strong>
+                                <p class="text-sm mt-1">分析答題模式與錯誤類型，找出真正「學習盲點」。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-route text-blue-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-slate-800">適性化路徑規劃</strong>
+                                <p class="text-sm mt-1">即時生成個人化的補強作業與學習資源。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Human Core -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-orange-500 hover:-translate-y-2 transition duration-300 transform scale-105 z-10">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 text-2xl mr-4">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">專業教師團隊 <br><span class="text-sm font-normal text-slate-500">Human Core</span></h3>
+                    </div>
+                    <ul class="space-y-4 text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-heart text-orange-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-slate-800">情感支持與心理建設</strong>
+                                <p class="text-sm mt-1">關注學習情緒、建立自信、高EQ培養。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-book-open-reader text-orange-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-slate-800">品格與價值觀教育</strong>
+                                <p class="text-sm mt-1">延伸閱讀、思辨與德育引導。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Transparency Core -->
+                <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-emerald-500 hover:-translate-y-2 transition duration-300">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-2xl mr-4">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900">家長透明溝通 <br><span class="text-sm font-normal text-slate-500">Transparency Core</span></h3>
+                    </div>
+                    <ul class="space-y-4 text-slate-600">
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-file-invoice text-emerald-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-slate-800">即時學習報告</strong>
+                                <p class="text-sm mt-1">隨時查看孩子 AI 分析後的弱點與成長曲線。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa-solid fa-handshake text-emerald-500 mt-1 mr-3"></i>
+                            <div>
+                                <strong class="text-slate-800">教師溝通專區</strong>
+                                <p class="text-sm mt-1">定期會談討論孩子的心智成熟度與未來規劃。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技術優勢 (Schedule Button) -->
+    <section id="comparison" class="py-20 bg-white border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">平台技術優勢分析</h2>
+                <p class="text-slate-500 mb-8">學思AI 系統 vs 市場現有平台</p>
+                
+                <!-- Schedule Button -->
+                <button onclick="toggleModal('schedule-modal')" class="inline-flex items-center px-6 py-3 bg-warm text-white rounded-full font-bold hover:bg-orange-600 transition shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1">
+                    <i class="fa-regular fa-calendar-days mr-2"></i> 查看課照班課表
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                <!-- Market Gap -->
+                <div class="bg-slate-50 p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">市場現有痛點</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start text-slate-600">
+                            <i class="fa-solid fa-circle-exclamation text-red-400 mt-1 mr-3"></i>
+                            <span>動機兩難：遊戲化犧牲自主性 vs 自主探索門檻過高。</span>
+                        </li>
+                        <li class="flex items-start text-slate-600">
+                            <i class="fa-solid fa-circle-exclamation text-red-400 mt-1 mr-3"></i>
+                            <span>數據負擔：詳盡數據反而增加教師備課與解讀的行政負擔。</span>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Solution -->
+                <div class="bg-blue-50 p-8 rounded-2xl border border-blue-100">
+                    <h3 class="text-xl font-bold mb-4 text-primary">學思AI 解決方案</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start text-slate-700">
+                            <i class="fa-solid fa-circle-check text-primary mt-1 mr-3"></i>
+                            <span><strong>動機與自主平衡：</strong>AI 即時反饋建立成就感，教師情感支持維持續航力。</span>
+                        </li>
+                        <li class="flex items-start text-slate-700">
+                            <i class="fa-solid fa-circle-check text-primary mt-1 mr-3"></i>
+                            <span><strong>虛擬助教 (VTA)：</strong>主動分擔作業批改與錯誤歸因，讓老師專注於「人」。</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Schedule Modal with Tabs -->
+    <div id="schedule-modal" class="modal fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="modal-content bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative">
+            <!-- Header (Fixed Mobile Layout) -->
+            <div class="sticky top-0 bg-white border-b border-slate-100 p-6 z-10">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <!-- Title & Mobile Close Button Row -->
+                    <div class="w-full md:w-auto flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-slate-800 flex items-center">
+                            <i class="fa-regular fa-clock text-warm mr-3"></i> 學思AI 課照班課表
+                        </h3>
+                        <!-- Mobile Close Button (In flow, not absolute) -->
+                        <button onclick="toggleModal('schedule-modal')" class="md:hidden w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition">
+                            <i class="fa-solid fa-xmark text-slate-500 text-xl"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Grade Tabs -->
+                    <div class="flex space-x-2 bg-slate-100 p-1 rounded-lg">
+                        <button onclick="switchTab('low')" id="tab-low" class="px-4 py-2 rounded-md text-sm font-bold text-slate-500 hover:text-slate-800 transition bg-white shadow-sm text-primary">低年級</button>
+                        <button onclick="switchTab('mid')" id="tab-mid" class="px-4 py-2 rounded-md text-sm font-bold text-slate-500 hover:text-slate-800 transition">中年級</button>
+                        <button onclick="switchTab('high')" id="tab-high" class="px-4 py-2 rounded-md text-sm font-bold text-slate-500 hover:text-slate-800 transition">高年級</button>
+                    </div>
+
+                    <!-- Desktop Close Button -->
+                    <button onclick="toggleModal('schedule-modal')" class="hidden md:flex w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 items-center justify-center transition">
+                        <i class="fa-solid fa-xmark text-slate-500 text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Schedule Content -->
+            <div class="p-6 md:p-10">
+                <!-- Mobile Hint -->
+                <div class="md:hidden text-center text-slate-400 text-sm mb-4 animate-pulse">
+                    <span class="inline-block bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                        <i class="fa-solid fa-hand-pointer mr-2 text-warm animate-swipe"></i> 👉 如果使用手機向右滑看全表
+                    </span>
+                </div>
+                
+                <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                    
+                    <!-- 低年級 Table (Low Grade) -->
+                    <table id="schedule-low" class="w-full schedule-table min-w-[800px]">
+                        <thead>
+                            <tr>
+                                <th class="w-32">TIME</th>
+                                <th>週一 MON</th>
+                                <th>週二 TUE</th>
+                                <th>週三 WED</th>
+                                <th>週四 THU</th>
+                                <th>週五 FRI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="time-col">12:30<br>~<br>13:30</td>
+                                <td class="bg-orange-50">午餐與<br>甜蜜夢鄉</td>
+                                <td rowspan="5" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td class="bg-orange-50">午餐與<br>甜蜜夢鄉</td>
+                                <td class="bg-orange-50">午餐與<br>甜蜜夢鄉</td>
+                                <td class="bg-orange-50">午餐與<br>甜蜜夢鄉</td>
+                            </tr>
+                            <tr>
+                                <td class="time-col">13:30<br>~<br>15:00</td>
+                                <td>學校作業<br>AI 輔導</td>
+                                <td>學校作業<br>AI 輔導</td>
+                                <td>學校作業<br>AI 輔導</td>
+                                <td>學校作業<br>AI 輔導</td>
+                            </tr>
+                            <tr>
+                                <td class="time-col">15:00<br>~<br>15:30</td>
+                                <td colspan="1" class="bg-yellow-50">快樂點心</td>
+                                <td class="bg-yellow-50">快樂點心</td>
+                                <td class="bg-yellow-50">快樂點心</td>
+                                <td class="bg-yellow-50">快樂點心</td>
+                            </tr>
+                             <tr>
+                                <td class="time-col">15:30<br>~<br>16:30</td>
+                                <td>素養閱讀</td>
+                                <td>科學實驗</td>
+                                <td>美術創作</td>
+                                <td>樂高積木</td>
+                            </tr>
+                             <tr>
+                                <td class="time-col">16:30<br>~<br>17:30</td>
+                                <td>AI 數學</td>
+                                <td>AI 數學</td>
+                                <td>AI 國語</td>
+                                <td>AI 國語</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- 中年級 Table (Mid Grade) - Hidden by default -->
+                    <table id="schedule-mid" class="w-full schedule-table min-w-[800px] hidden">
+                        <thead>
+                            <tr>
+                                <th class="w-32">TIME</th>
+                                <th>週一 MON</th>
+                                <th>週二 TUE</th>
+                                <th>週三 WED</th>
+                                <th>週四 THU</th>
+                                <th>週五 FRI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="time-col">12:30<br>~<br>13:30</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td class="bg-orange-50">午餐與<br>甜蜜夢鄉</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                            </tr>
+                            <tr>
+                                <td class="time-col">13:30<br>~<br>15:00</td>
+                                <td>作業 AI<br>小書僮</td>
+                            </tr>
+                             <tr>
+                                <td class="time-col">15:00<br>~<br>15:30</td>
+                                <td class="bg-yellow-50">快樂點心</td>
+                            </tr>
+                             <tr>
+                                <td class="time-col">15:30<br>~<br>16:00</td>
+                                <td>社團活動</td>
+                            </tr>
+                            <tr>
+                                <td class="time-col">16:00<br>~<br>17:30</td>
+                                <td>作業 AI<br>小書僮</td>
+                                <td>作業 AI<br>小書僮</td>
+                                <td>數學邏輯</td>
+                                <td>作業 AI<br>小書僮</td>
+                                <td>作業 AI<br>小書僮</td>
+                            </tr>
+                             <tr>
+                                <td class="time-col">17:30<br>~<br>18:00</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                                <td class="bg-gray-50">品格教育</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                     <!-- 高年級 Table (High Grade) - Hidden by default -->
+                    <table id="schedule-high" class="w-full schedule-table min-w-[800px] hidden">
+                         <thead>
+                            <tr>
+                                <th class="w-32">TIME</th>
+                                <th>週一 MON</th>
+                                <th>週二 TUE</th>
+                                <th>週三 WED</th>
+                                <th>週四 THU</th>
+                                <th>週五 FRI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Row 13:00 ~ 13:30 -->
+                            <tr>
+                                <td class="time-col">13:00<br>~<br>13:30</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td class="bg-orange-50">甜蜜夢鄉</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                                <td rowspan="4" class="bg-blue-50/30 text-lg">在<br>校<br>認<br>真<br>學<br>習</td>
+                            </tr>
+                            <!-- Row 13:30 ~ 15:00 -->
+                            <tr>
+                                <td class="time-col">13:30<br>~<br>15:00</td>
+                                <td>作業AI<br>小書僮</td>
+                            </tr>
+                            <!-- Row 15:00 ~ 15:30 -->
+                            <tr>
+                                <td class="time-col">15:00<br>~<br>15:30</td>
+                                <td class="text-sm">G5:AI助教<br>G6:團康活動</td>
+                            </tr>
+                            <!-- Row 15:30 ~ 16:00 -->
+                            <tr>
+                                <td class="time-col">15:30<br>~<br>16:00</td>
+                                <td class="text-sm">G5:團康活動<br>G6:AI助教</td>
+                            </tr>
+                            <!-- Row 16:00 ~ 17:30 -->
+                            <tr>
+                                <td class="time-col">16:00<br>~<br>17:30</td>
+                                <td>作業AI<br>小書僮</td>
+                                <td>作業AI<br>小書僮</td>
+                                <td>才藝課程<br>樂高方程式</td>
+                                <td>作業AI<br>小書僮</td>
+                                <td>作業AI<br>小書僮</td>
+                            </tr>
+                            <!-- Row 17:30 ~ 18:00 -->
+                            <tr>
+                                <td class="time-col">17:30<br>~<br>18:00</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                                <td class="bg-gray-50">品格閱讀</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                                <td class="bg-gray-50">閱讀時間</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA / Contact -->
+    <section id="contact" class="py-20 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold text-slate-900 mb-6">加入我們，成為教育的典範</h2>
+            <p class="text-xl text-slate-600 mb-10">
+                致力於培養出學業精熟、心智成熟的<span class="text-primary font-bold">未來領導者</span>。
+            </p>
+            <div class="flex justify-center space-x-6">
+                <button class="px-8 py-4 bg-secondary text-white rounded-full font-semibold hover:bg-slate-700 transition shadow-lg">
+                    聯絡團隊
+                </button>
+                <button class="px-8 py-4 bg-white text-slate-900 border border-slate-300 rounded-full font-semibold hover:bg-slate-50 transition">
+                    下載完整報告
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white py-12 border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-slate-500 text-sm mb-4 md:mb-0">
+                &copy; 2024 學思AI (Xuesi AI) Education Group. All Rights Reserved.
+            </div>
+            <div class="text-slate-400 text-xs">
+                Empowering Education with AI & Warmth.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Modal Control
+        function toggleModal(modalID){
+            const modal = document.getElementById(modalID);
+            modal.classList.toggle('active');
+            if(modal.classList.contains('active')){
+                document.body.style.overflow = 'hidden'; 
+                // Default to Low grade when opening
+                switchTab('low');
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(grade) {
+            // Hide all tables
+            document.getElementById('schedule-low').classList.add('hidden');
+            document.getElementById('schedule-mid').classList.add('hidden');
+            document.getElementById('schedule-high').classList.add('hidden');
+
+            // Reset all buttons
+            document.getElementById('tab-low').classList.remove('active', 'bg-white', 'shadow-sm', 'text-primary');
+            document.getElementById('tab-mid').classList.remove('active', 'bg-white', 'shadow-sm', 'text-primary');
+            document.getElementById('tab-high').classList.remove('active', 'bg-white', 'shadow-sm', 'text-primary');
+
+            // Show selected table
+            document.getElementById('schedule-' + grade).classList.remove('hidden');
+
+            // Highlight selected button
+            const btn = document.getElementById('tab-' + grade);
+            btn.classList.add('active', 'bg-white', 'shadow-sm', 'text-primary');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('schedule-modal').addEventListener('click', function(e){
+            if(e.target === this){
+                toggleModal('schedule-modal');
+            }
+        });
+    </script>
+</body>
+</html>
